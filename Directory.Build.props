@@ -1,0 +1,9 @@
+<Project>
+	<PropertyGroup>
+		<PythonExecutable Condition="$([MSBuild]::IsOSPlatform('Linux'))">python3</PythonExecutable>
+		<PythonExecutable Condition="$([MSBuild]::IsOSPlatform('Windows'))">python</PythonExecutable>
+		<ReferenceAssembliesDownloaderTargetDir>$(MSBuildThisFileDirectory).ref</ReferenceAssembliesDownloaderTargetDir>
+		<EnableFrameworkPathOverride>true</EnableFrameworkPathOverride>
+		<TargetFrameworkFallbackSearchPaths>$(ReferenceAssembliesDownloaderTargetDir)</TargetFrameworkFallbackSearchPaths>
+	</PropertyGroup>
+</Project>

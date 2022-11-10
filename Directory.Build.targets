@@ -1,0 +1,5 @@
+<Project>
+	<Target Name="DownloadReferenceAssemblies" BeforeTargets="Build" Condition="!Exists('$(ReferenceAssembliesDownloaderTargetDir)/ref_assemblies_downloaded.txt')">
+		<Exec Command="$(PythonExecutable) $(MSBuildThisFileDirectory)referenceAssembliesDownloader.py --source nuget --target $(ReferenceAssembliesDownloaderTargetDir)" />
+	</Target>
+</Project>
