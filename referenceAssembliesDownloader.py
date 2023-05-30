@@ -2,7 +2,7 @@ import argparse
 from enum import Enum
 import os
 import requests
-import shutil
+from distutils.dir_util import copy_tree
 import tempfile
 import zipfile
 
@@ -39,14 +39,27 @@ def log(msg: str):
     print(f'[ReferenceAssembliesDownloader] {msg}', flush=True)
 
 
+def get_version_from_tfm(tfm):
+    version = '.'.join(tfm[3:])
+    return f'v{version}'
+
+
 def ensure_target_dir(target_dir: str):
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
 
 
+def clear_dir(dir: str):
+    if os.path.exists(dir):
+        shutil.rmtree(dir)
+
+    ensure_target_dir(dir)
+
+
 def nuget_download(target_dir: str):
     REF_ASS_VER = '1.0.3'
     temp_dir = tempfile.gettempdir()
+    target_dir_base = os.path.join(target_dir, '.NETFramework')
 
     log('Downloading reference assemblies from NuGet\n'
         f'  - target_dir = {target_dir}\n'
@@ -54,6 +67,11 @@ def nuget_download(target_dir: str):
     )
 
     for framework_ver in DOTNET_FRAMEWORK_TFMS:
+        version_str = get_version_from_tfm(framework_ver)
+        target_dir_for_framework = os.path.join(target_dir_base, version_str)
+
+        clear_dir(target_dir_for_framework)
+
         url = f'https://www.nuget.org/api/v2/package/Microsoft.NETFramework.ReferenceAssemblies.{framework_ver}/{REF_ASS_VER}'
 
         log(f'downloading reference assemblies for {framework_ver} from {url}')
@@ -73,10 +91,8 @@ def nuget_download(target_dir: str):
         ref_ass_source_dir = os.path.join(extract_folder, 'build', '.NETFramework')
         dirlist = [ item for item in os.listdir(ref_ass_source_dir) if os.path.isdir(os.path.join(ref_ass_source_dir, item)) ]
         dir_for_framework = dirlist[0] # last part of build/.NETFramework/v1.2.3, there must be only one dir
-        target_dir_for_framework = os.path.join(target_dir, dir_for_framework)
-        if os.path.exists(target_dir_for_framework):
-            shutil.rmtree(target_dir_for_framework)
-        shutil.copytree(os.path.join(ref_ass_source_dir, dir_for_framework), target_dir_for_framework)
+        
+        copy_tree(os.path.join(ref_ass_source_dir, dir_for_framework), target_dir_for_framework)
 
     with open(os.path.join(target_dir, MARKER_FILE), 'w') as marker:
         marker.write('done')
